@@ -38,15 +38,11 @@ deterministic rule engine, and CI-friendly machine-readable output (JSON, SARIF)
 git clone https://github.com/AyinkxLab/soroban-security-scanner
 cd soroban-security-scanner
 cargo build --release
-
-# Scan a contract and print findings
-./target/release/soroban-scan scan ./examples/vulnerable-contract --fail-on none
-
-# Machine-readable output for CI
-./target/release/soroban-scan scan . --format sarif --output results.sarif
+./target/release/soroban-scan scan ./examples/vulnerable-contract
 ```
 
-Requires a stable Rust toolchain. See [`docs/development/setup.md`](docs/development/setup.md).
+See [Getting Started](docs/getting-started.md) for installation, JSON/SARIF
+output, and interpreting findings.
 
 ## What it detects
 
