@@ -71,20 +71,20 @@ pipeline: `config` feeds discovery/engine/report, `source` feeds `project` and
 | `model` | Serializable project/manifest/diagnostic data model. | Nothing in the crate. |
 | `finding` | `Finding`, `SourceLocation`, fingerprints, identity, and sort keys. | `category`, `confidence`, `rule`, `severity`. |
 | `rule` | `Rule` trait and `RuleMetadata`. | `category`, `confidence`, `context`, `finding`, `severity`. |
-| `registry` | Registration, lookup, and deterministic metadata ordering for rules. | `category`, `rule`. |
+| `registry` | Registration, lookup, and deterministic metadata ordering for rules. | `category`, `rule`, `rules`. |
 | `config` | Layered `ScanConfig` and validation; repository config is untrusted input. | `ai`, `category`, `confidence`, `severity`. |
 | `manifest` | Syntactic `Cargo.toml` parsing (no execution or fetching). | `error`, `model`. |
 | `discovery` | Deterministic, symlink-safe filesystem traversal and exclude globs. | `error`. |
-| `source` | `syn` parsing, spans, module paths, crate-root membership, contract evidence, suppressions. | `error`, `model`, `soroban`. |
+| `source` | `syn` parsing, spans, module paths, crate-root membership, contract evidence, suppressions. | `error`, `model`, `soroban`, `suppression`. |
 | `project` | Orchestrates discovery, manifest loading, source parsing, and Soroban classification. | `discovery`, `error`, `manifest`, `model`, `soroban`, `source`. |
 | `soroban` | Soroban evidence and project classification; never executes contracts. | `model`. |
 | `context` | Immutable `AnalysisContext` passed to rules. | `model`, `source`. |
-| `rules` | Built-in detectors, rule metadata validation, and shared analysis helpers. | `category`, `confidence`, `context`, `finding`, `rule`, `severity`, `source`. |
+| `rules` | Built-in detectors, rule metadata validation, and shared analysis helpers. | `category`, `confidence`, `context`, `finding`, `registry`, `rule`, `severity`, `soroban`, `source`. |
 | `engine` | Runs enabled rules, collects/sorts/deduplicates findings, applies suppressions and baselines. | `config`, `context`, `error`, `finding`, `model`, `project`, `registry`, `suppression`. |
 | `suppression` | Inline `ignore` directives and source ranges. | `finding`-adjacent data only. |
 | `baseline` | Fingerprint baselines, JSON/TOML parsing, merge/prune, unknown-rule diagnostics. | `error`, `finding`, `model`, `registry`, `severity`. |
 | `report` | Terminal, JSON, SARIF, Markdown, HTML, and GitHub renderers. | `config`, `engine`, `finding`, `model`, `registry`, `rule`, `severity`. |
-| `ai` | Optional, advisory assistance; deterministic engine remains authoritative. | `category`, `finding`, `rule`, `severity`. |
+| `ai` | Optional, advisory assistance; deterministic engine remains authoritative. | `category`, `confidence`, `finding`, `rule`, `severity`. |
 
 ## Subsystem submodules
 
