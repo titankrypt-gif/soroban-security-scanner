@@ -1,0 +1,117 @@
+{
+  "schema_version": "1",
+  "tool": {
+    "name": "soroban-scan",
+    "version": "0.2.0",
+    "information_uri": "https://github.com/AyinkxLab/soroban-security-scanner"
+  },
+  "project": {
+    "root": ".",
+    "kind": "confirmed_soroban",
+    "source_files": 1,
+    "soroban_sdk_versions": []
+  },
+  "stats": {
+    "files_analyzed": 1,
+    "files_parsed": 1,
+    "files_failed": 0,
+    "files_skipped": 0,
+    "rules_run": 18,
+    "rules_skipped": 0,
+    "findings_raw": 2,
+    "findings_rejected": 0,
+    "suppressions_detected": 0,
+    "findings_suppressed": 0,
+    "findings_suppressed_by_config": 0,
+    "config_suppressions_detected": 0,
+    "config_suppressions_matched": 0,
+    "config_suppressions_applied": 0,
+    "generated_files_marked": 0,
+    "generated_files_excluded": 0
+  },
+  "effective_config": {
+    "min_severity": "info",
+    "min_confidence": "low",
+    "exclude": [],
+    "exclude_tests": false,
+    "exclude_generated": false,
+    "follow_symlinks": false,
+    "minimum_soroban_sdk": "21.0.0",
+    "suppressions": [],
+    "rules": {
+      "disabled": [],
+      "enabled": [],
+      "disabled_categories": [],
+      "enabled_categories": [],
+      "severity_overrides": {},
+      "confidence_overrides": {},
+      "time_budget_ms": null
+    },
+    "ai": {
+      "enabled": false,
+      "provider": null,
+      "model": null,
+      "temperature": 0.0,
+      "max_output_tokens": 1024,
+      "max_requests": 50,
+      "max_retries": 2,
+      "backoff_ms": 250,
+      "max_backoff_ms": 4000,
+      "failure_threshold": 3
+    }
+  },
+  "findings": [
+    {
+      "rule_id": "SS-004",
+      "title": "Panic-prone construct in a contract entry point",
+      "description": "A contract entry point calls `unwrap`, `expect`, `panic!`, `todo!`, `unimplemented!`, or `unreachable!`. In Soroban these abort the invocation and roll back state. When reachable from normal input, this turns a recoverable error condition into a failed transaction (a denial of service). This is a code-quality signal rather than proof of a vulnerability.",
+      "severity": "low",
+      "confidence": "medium",
+      "category": "error-handling",
+      "location": {
+        "file": "SS-004/positive.rs",
+        "line": 9,
+        "column": 21
+      },
+      "evidence": "`unwrap` in `read_or_die` can panic: env . storage () . persistent () . get (& K) . unwrap ()",
+      "remediation": "Return a `Result` with a typed contract error instead of panicking, so callers can handle failure. Replace `unwrap`/`expect` on fallible operations with `?`, `unwrap_or`, `unwrap_or_default`, or explicit matching.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/errors-and-fees",
+        "https://developers.stellar.org/docs/tools/cli/stellar-cli"
+      ],
+      "fingerprint": "dff5e13c70dad06c64575ed63be1a882"
+    },
+    {
+      "rule_id": "SS-004",
+      "title": "Panic-prone construct in a contract entry point",
+      "description": "A contract entry point calls `unwrap`, `expect`, `panic!`, `todo!`, `unimplemented!`, or `unreachable!`. In Soroban these abort the invocation and roll back state. When reachable from normal input, this turns a recoverable error condition into a failed transaction (a denial of service). This is a code-quality signal rather than proof of a vulnerability.",
+      "severity": "low",
+      "confidence": "medium",
+      "category": "error-handling",
+      "location": {
+        "file": "SS-004/positive.rs",
+        "line": 11,
+        "column": 13
+      },
+      "evidence": "`panic` in `read_or_die` can panic: panic ! (\"empty\")",
+      "remediation": "Return a `Result` with a typed contract error instead of panicking, so callers can handle failure. Replace `unwrap`/`expect` on fallible operations with `?`, `unwrap_or`, `unwrap_or_default`, or explicit matching.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/errors-and-fees",
+        "https://developers.stellar.org/docs/tools/cli/stellar-cli"
+      ],
+      "fingerprint": "98b0d8ef6974a1302fce916aee91dbf7"
+    }
+  ],
+  "suppressed": [],
+  "suppressions": [],
+  "config_suppressions": [],
+  "diagnostics": [
+    {
+      "code": "MACRO-001",
+      "level": "info",
+      "message": "1 macro invocation(s) were not expanded: panic",
+      "path": "SS-004/positive.rs",
+      "line": null
+    }
+  ]
+}

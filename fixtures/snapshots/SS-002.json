@@ -1,0 +1,108 @@
+{
+  "schema_version": "1",
+  "tool": {
+    "name": "soroban-scan",
+    "version": "0.2.0",
+    "information_uri": "https://github.com/AyinkxLab/soroban-security-scanner"
+  },
+  "project": {
+    "root": ".",
+    "kind": "confirmed_soroban",
+    "source_files": 1,
+    "soroban_sdk_versions": []
+  },
+  "stats": {
+    "files_analyzed": 1,
+    "files_parsed": 1,
+    "files_failed": 0,
+    "files_skipped": 0,
+    "rules_run": 18,
+    "rules_skipped": 0,
+    "findings_raw": 2,
+    "findings_rejected": 0,
+    "suppressions_detected": 0,
+    "findings_suppressed": 0,
+    "findings_suppressed_by_config": 0,
+    "config_suppressions_detected": 0,
+    "config_suppressions_matched": 0,
+    "config_suppressions_applied": 0,
+    "generated_files_marked": 0,
+    "generated_files_excluded": 0
+  },
+  "effective_config": {
+    "min_severity": "info",
+    "min_confidence": "low",
+    "exclude": [],
+    "exclude_tests": false,
+    "exclude_generated": false,
+    "follow_symlinks": false,
+    "minimum_soroban_sdk": "21.0.0",
+    "suppressions": [],
+    "rules": {
+      "disabled": [],
+      "enabled": [],
+      "disabled_categories": [],
+      "enabled_categories": [],
+      "severity_overrides": {},
+      "confidence_overrides": {},
+      "time_budget_ms": null
+    },
+    "ai": {
+      "enabled": false,
+      "provider": null,
+      "model": null,
+      "temperature": 0.0,
+      "max_output_tokens": 1024,
+      "max_requests": 50,
+      "max_retries": 2,
+      "backoff_ms": 250,
+      "max_backoff_ms": 4000,
+      "failure_threshold": 3
+    }
+  },
+  "findings": [
+    {
+      "rule_id": "SS-002",
+      "title": "Cross-contract call without caller authorization",
+      "description": "A public contract function constructs and calls another contract client but does not call require_auth in its body or in the intra-file helper functions it calls. If the contract acts on funds or privileges it controls, an attacker may be able to trigger cross-contract effects without the caller's approval. This is a heuristic: the called contract may itself enforce authorization, or the invocation may be intentionally permissionless.",
+      "severity": "high",
+      "confidence": "low",
+      "category": "cross-contract",
+      "location": {
+        "file": "SS-002/positive.rs",
+        "line": 9,
+        "column": 22
+      },
+      "evidence": "cross-contract client constructed with no authorization in `payout`: TokenClient :: new (& env , & token_id)",
+      "remediation": "Authorize the caller with `address.require_auth()` before invoking another contract on the contract's behalf, and bind the approval to the specific arguments of the operation. Verify that any address used to construct the client is the expected contract.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/security/authorization"
+      ],
+      "fingerprint": "c399badb33485c8496d429125c15e476"
+    },
+    {
+      "rule_id": "SS-014",
+      "title": "Token transfer amount without validation",
+      "description": "A public contract entry point passes a caller-supplied amount to `transfer` or `transfer_from` without comparing it against zero. Token implementations differ in how they treat negative or out-of-range amounts; a missing guard can therefore move an unintended value, corrupt accounting, or revert in surprising ways. This is a heuristic: it cannot prove that the token rejects the value or that another layer validates it, so it reports low confidence.",
+      "severity": "medium",
+      "confidence": "low",
+      "category": "token",
+      "location": {
+        "file": "SS-002/positive.rs",
+        "line": 10,
+        "column": 9
+      },
+      "evidence": "`transfer` transfers unchecked amount `amount` in entry point `payout`",
+      "remediation": "Validate the amount before transferring, for example reject `amount <= 0` with a typed contract error (or check both bounds when the token has a maximum). Validate once at the entry point and pass the checked value to `transfer`/`transfer_from`.",
+      "references": [
+        "https://developers.stellar.org/docs/tokens/token-interface",
+        "https://developers.stellar.org/docs/learn/encyclopedia/security"
+      ],
+      "fingerprint": "3dfc41148c088ed584c759e633059253"
+    }
+  ],
+  "suppressed": [],
+  "suppressions": [],
+  "config_suppressions": [],
+  "diagnostics": []
+}

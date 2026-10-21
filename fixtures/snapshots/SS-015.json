@@ -1,0 +1,90 @@
+{
+  "schema_version": "1",
+  "tool": {
+    "name": "soroban-scan",
+    "version": "0.2.0",
+    "information_uri": "https://github.com/AyinkxLab/soroban-security-scanner"
+  },
+  "project": {
+    "root": ".",
+    "kind": "likely_soroban",
+    "source_files": 0,
+    "soroban_sdk_versions": [
+      "20.5.0"
+    ]
+  },
+  "stats": {
+    "files_analyzed": 0,
+    "files_parsed": 0,
+    "files_failed": 0,
+    "files_skipped": 0,
+    "rules_run": 18,
+    "rules_skipped": 0,
+    "findings_raw": 1,
+    "findings_rejected": 0,
+    "suppressions_detected": 0,
+    "findings_suppressed": 0,
+    "findings_suppressed_by_config": 0,
+    "config_suppressions_detected": 0,
+    "config_suppressions_matched": 0,
+    "config_suppressions_applied": 0,
+    "generated_files_marked": 0,
+    "generated_files_excluded": 0
+  },
+  "effective_config": {
+    "min_severity": "info",
+    "min_confidence": "low",
+    "exclude": [],
+    "exclude_tests": false,
+    "exclude_generated": false,
+    "follow_symlinks": false,
+    "minimum_soroban_sdk": "21.0.0",
+    "suppressions": [],
+    "rules": {
+      "disabled": [],
+      "enabled": [],
+      "disabled_categories": [],
+      "enabled_categories": [],
+      "severity_overrides": {},
+      "confidence_overrides": {},
+      "time_budget_ms": null
+    },
+    "ai": {
+      "enabled": false,
+      "provider": null,
+      "model": null,
+      "temperature": 0.0,
+      "max_output_tokens": 1024,
+      "max_requests": 50,
+      "max_retries": 2,
+      "backoff_ms": 250,
+      "max_backoff_ms": 4000,
+      "failure_threshold": 3
+    }
+  },
+  "findings": [
+    {
+      "rule_id": "SS-015",
+      "title": "Deprecated Soroban SDK version",
+      "description": "The project declares a `soroban-sdk` version older than the configured minimum. Older major versions can miss API fixes, security patches, and supported runtime behavior. This is a policy signal: review the changelog and upgrade when practical.",
+      "severity": "low",
+      "confidence": "medium",
+      "category": "dependencies",
+      "location": {
+        "file": "Cargo.toml",
+        "line": 1
+      },
+      "evidence": "soroban-sdk `20.5.0` is older than the minimum supported version `21.0.0`",
+      "remediation": "Upgrade `soroban-sdk` to at least the minimum configured in `minimum_soroban_sdk` (default 21.0.0), then rebuild and rerun the contract tests.",
+      "references": [
+        "https://github.com/stellar/rs-soroban-sdk/releases",
+        "https://developers.stellar.org/docs"
+      ],
+      "fingerprint": "e86199a78f3dd868b857d296310aebe5"
+    }
+  ],
+  "suppressed": [],
+  "suppressions": [],
+  "config_suppressions": [],
+  "diagnostics": []
+}

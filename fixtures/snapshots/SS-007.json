@@ -1,0 +1,88 @@
+{
+  "schema_version": "1",
+  "tool": {
+    "name": "soroban-scan",
+    "version": "0.2.0",
+    "information_uri": "https://github.com/AyinkxLab/soroban-security-scanner"
+  },
+  "project": {
+    "root": ".",
+    "kind": "confirmed_soroban",
+    "source_files": 1,
+    "soroban_sdk_versions": []
+  },
+  "stats": {
+    "files_analyzed": 1,
+    "files_parsed": 1,
+    "files_failed": 0,
+    "files_skipped": 0,
+    "rules_run": 18,
+    "rules_skipped": 0,
+    "findings_raw": 1,
+    "findings_rejected": 0,
+    "suppressions_detected": 0,
+    "findings_suppressed": 0,
+    "findings_suppressed_by_config": 0,
+    "config_suppressions_detected": 0,
+    "config_suppressions_matched": 0,
+    "config_suppressions_applied": 0,
+    "generated_files_marked": 0,
+    "generated_files_excluded": 0
+  },
+  "effective_config": {
+    "min_severity": "info",
+    "min_confidence": "low",
+    "exclude": [],
+    "exclude_tests": false,
+    "exclude_generated": false,
+    "follow_symlinks": false,
+    "minimum_soroban_sdk": "21.0.0",
+    "suppressions": [],
+    "rules": {
+      "disabled": [],
+      "enabled": [],
+      "disabled_categories": [],
+      "enabled_categories": [],
+      "severity_overrides": {},
+      "confidence_overrides": {},
+      "time_budget_ms": null
+    },
+    "ai": {
+      "enabled": false,
+      "provider": null,
+      "model": null,
+      "temperature": 0.0,
+      "max_output_tokens": 1024,
+      "max_requests": 50,
+      "max_retries": 2,
+      "backoff_ms": 250,
+      "max_backoff_ms": 4000,
+      "failure_threshold": 3
+    }
+  },
+  "findings": [
+    {
+      "rule_id": "SS-007",
+      "title": "Hardcoded Stellar account or contract address",
+      "description": "A string literal in the contract matches the shape of a Stellar account (`G...`) or contract (`C...`) address. Hardcoding an address bakes a fixed counterparty or administrator into the contract, preventing rotation and making the contract unsafe if that key or contract changes or is compromised. Addresses are public, so this is a design concern rather than a secret leak.",
+      "severity": "medium",
+      "confidence": "low",
+      "category": "configuration",
+      "location": {
+        "file": "SS-007/positive.rs",
+        "line": 10,
+        "column": 9
+      },
+      "evidence": "hardcoded Stellar address literal: GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "remediation": "Store addresses in contract storage or pass them as parameters, and validate them against stored configuration. If an address must be a compile-time constant, document the operational plan for rotation and key compromise.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/security"
+      ],
+      "fingerprint": "3f95fad2274ba2c1dce73ddad99699b8"
+    }
+  ],
+  "suppressed": [],
+  "suppressions": [],
+  "config_suppressions": [],
+  "diagnostics": []
+}

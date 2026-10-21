@@ -1,0 +1,192 @@
+{
+  "schema_version": "1",
+  "tool": {
+    "name": "soroban-scan",
+    "version": "0.2.0",
+    "information_uri": "https://github.com/AyinkxLab/soroban-security-scanner"
+  },
+  "project": {
+    "root": ".",
+    "kind": "confirmed_soroban",
+    "source_files": 1,
+    "soroban_sdk_versions": []
+  },
+  "stats": {
+    "files_analyzed": 1,
+    "files_parsed": 1,
+    "files_failed": 0,
+    "files_skipped": 0,
+    "rules_run": 18,
+    "rules_skipped": 0,
+    "findings_raw": 6,
+    "findings_rejected": 0,
+    "suppressions_detected": 0,
+    "findings_suppressed": 0,
+    "findings_suppressed_by_config": 0,
+    "config_suppressions_detected": 0,
+    "config_suppressions_matched": 0,
+    "config_suppressions_applied": 0,
+    "generated_files_marked": 0,
+    "generated_files_excluded": 0
+  },
+  "effective_config": {
+    "min_severity": "info",
+    "min_confidence": "low",
+    "exclude": [],
+    "exclude_tests": false,
+    "exclude_generated": false,
+    "follow_symlinks": false,
+    "minimum_soroban_sdk": "21.0.0",
+    "suppressions": [],
+    "rules": {
+      "disabled": [],
+      "enabled": [],
+      "disabled_categories": [],
+      "enabled_categories": [],
+      "severity_overrides": {},
+      "confidence_overrides": {},
+      "time_budget_ms": null
+    },
+    "ai": {
+      "enabled": false,
+      "provider": null,
+      "model": null,
+      "temperature": 0.0,
+      "max_output_tokens": 1024,
+      "max_requests": 50,
+      "max_retries": 2,
+      "backoff_ms": 250,
+      "max_backoff_ms": 4000,
+      "failure_threshold": 3
+    }
+  },
+  "findings": [
+    {
+      "rule_id": "SS-001",
+      "title": "State-changing entry point without caller authorization",
+      "description": "A public contract function mutates storage but does not call require_auth or require_auth_for_args anywhere in its body or in the intra-file helper functions it calls. Without an authorization check, any account can invoke the function and change contract state, which may allow theft, privilege escalation, or corruption of contract data. This is a heuristic: authorization may legitimately be enforced by a callee or be intentionally absent for permissionless operations.",
+      "severity": "high",
+      "confidence": "medium",
+      "category": "authorization",
+      "location": {
+        "file": "SS-001/positive.rs",
+        "line": 9,
+        "column": 9
+      },
+      "evidence": "`set` storage mutation with no authorization in `set_admin`: env . storage () . persistent () . set (& symbol_short ! (\"ADMIN\") , & new_admin)",
+      "remediation": "Call `address.require_auth()` (or `require_auth_for_args`) for the account that must approve the operation before mutating state. Prefer authorizing a specific argument that binds the approval to the operation rather than authorizing a stored admin address unconditionally. If the function is intentionally permissionless, document that and suppress this rule for the function.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/security/authorization"
+      ],
+      "fingerprint": "c3e233e2b9601a95c29d47ed756e21b9"
+    },
+    {
+      "rule_id": "SS-006",
+      "title": "Persistent storage write without TTL management",
+      "description": "A contract entry point writes to persistent storage but does not call `extend_ttl`, `set_ttl`, or `bump` in the same function or in the intra-file helpers it calls. Persistent entries have a time-to-live; if it is not extended, stored data can expire and be lost. TTL may legitimately be managed elsewhere (for example in a separate maintenance entry point), so this is a low-confidence signal.",
+      "severity": "low",
+      "confidence": "low",
+      "category": "storage",
+      "location": {
+        "file": "SS-001/positive.rs",
+        "line": 9,
+        "column": 9
+      },
+      "evidence": "persistent storage write without TTL extension in `set_admin`: env . storage () . persistent () . set (& symbol_short ! (\"ADMIN\") , & new_admin)",
+      "remediation": "When writing persistent data that must survive, extend its time-to-live with `storage().persistent().extend_ttl(...)` after the write. Prefer a single, well-documented TTL policy for the contract. If TTL is managed centrally, suppress this rule for the function.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/storage/persisting-data"
+      ],
+      "fingerprint": "e110395ff3f6329d1b4e10dcc87ef51f"
+    },
+    {
+      "rule_id": "SS-010",
+      "title": "Privileged state change without an event",
+      "description": "A contract entry point mutates a storage key that looks like privileged configuration (for example admin, owner, pause, params, fees, or oracle) without publishing an event. Off-chain indexers and users rely on events to observe critical changes; without one, the change is invisible to monitoring and incident response.",
+      "severity": "low",
+      "confidence": "low",
+      "category": "events",
+      "location": {
+        "file": "SS-001/positive.rs",
+        "line": 9,
+        "column": 9
+      },
+      "evidence": "privileged storage change without an event in `set_admin`: env . storage () . persistent () . set (& symbol_short ! (\"ADMIN\") , & new_admin)",
+      "remediation": "Publish an event with `env.events().publish(...)` for every privileged state change, including the old and new values where practical. Keep the event schema stable so indexers can rely on it.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/events"
+      ],
+      "fingerprint": "661329002094a11864b18361688ec9d6"
+    },
+    {
+      "rule_id": "SS-008",
+      "title": "Unchecked arithmetic in a contract entry point",
+      "description": "A public contract entry point performs binary arithmetic (`+`, `-`, or `*`) on values without a checked, saturating, overflowing, or wrapping operation. In release builds Rust arithmetic wraps on overflow and underflow instead of panicking, so a decrement below zero (or an overflow) can silently produce an incorrect result — a common cause of balance and accounting bugs in token, escrow and vault contracts. This is a heuristic: it cannot prove that the operands are attacker-influenced or that their range is constrained, so it reports low confidence and should be reviewed in context.",
+      "severity": "medium",
+      "confidence": "low",
+      "category": "arithmetic",
+      "location": {
+        "file": "SS-001/positive.rs",
+        "line": 20,
+        "column": 27
+      },
+      "evidence": "unchecked `-` arithmetic in entry point `withdraw`: balance - amount (use `checked_sub` and handle `None`)",
+      "remediation": "Use explicit checked arithmetic (`checked_add`, `checked_sub`, `checked_mul`) and handle the `None` case with a typed contract error, or use saturating/overflowing variants when that semantics is intended. Prefer checked operations for balances, amounts, and counters derived from user input.",
+      "references": [
+        "https://doc.rust-lang.org/reference/expressions/operator-expr.html#overflow",
+        "https://developers.stellar.org/docs"
+      ],
+      "fingerprint": "62719aa444f19e75991d50ad53b0abaa"
+    },
+    {
+      "rule_id": "SS-001",
+      "title": "State-changing entry point without caller authorization",
+      "description": "A public contract function mutates storage but does not call require_auth or require_auth_for_args anywhere in its body or in the intra-file helper functions it calls. Without an authorization check, any account can invoke the function and change contract state, which may allow theft, privilege escalation, or corruption of contract data. This is a heuristic: authorization may legitimately be enforced by a callee or be intentionally absent for permissionless operations.",
+      "severity": "high",
+      "confidence": "medium",
+      "category": "authorization",
+      "location": {
+        "file": "SS-001/positive.rs",
+        "line": 21,
+        "column": 9
+      },
+      "evidence": "`set` storage mutation with no authorization in `withdraw`: env . storage () . persistent () . set (& symbol_short ! (\"BAL\") , & new_balance)",
+      "remediation": "Call `address.require_auth()` (or `require_auth_for_args`) for the account that must approve the operation before mutating state. Prefer authorizing a specific argument that binds the approval to the operation rather than authorizing a stored admin address unconditionally. If the function is intentionally permissionless, document that and suppress this rule for the function.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/security/authorization"
+      ],
+      "fingerprint": "34c6e80ed102dd08157ec8d820e5cd01"
+    },
+    {
+      "rule_id": "SS-006",
+      "title": "Persistent storage write without TTL management",
+      "description": "A contract entry point writes to persistent storage but does not call `extend_ttl`, `set_ttl`, or `bump` in the same function or in the intra-file helpers it calls. Persistent entries have a time-to-live; if it is not extended, stored data can expire and be lost. TTL may legitimately be managed elsewhere (for example in a separate maintenance entry point), so this is a low-confidence signal.",
+      "severity": "low",
+      "confidence": "low",
+      "category": "storage",
+      "location": {
+        "file": "SS-001/positive.rs",
+        "line": 21,
+        "column": 9
+      },
+      "evidence": "persistent storage write without TTL extension in `withdraw`: env . storage () . persistent () . set (& symbol_short ! (\"BAL\") , & new_balance)",
+      "remediation": "When writing persistent data that must survive, extend its time-to-live with `storage().persistent().extend_ttl(...)` after the write. Prefer a single, well-documented TTL policy for the contract. If TTL is managed centrally, suppress this rule for the function.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/storage/persisting-data"
+      ],
+      "fingerprint": "081e0141f5201a517f311d3ea111a6c4"
+    }
+  ],
+  "suppressed": [],
+  "suppressions": [],
+  "config_suppressions": [],
+  "diagnostics": [
+    {
+      "code": "MACRO-001",
+      "level": "info",
+      "message": "3 macro invocation(s) were not expanded: symbol_short",
+      "path": "SS-001/positive.rs",
+      "line": null
+    }
+  ]
+}

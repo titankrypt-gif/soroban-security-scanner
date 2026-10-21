@@ -1,0 +1,145 @@
+{
+  "schema_version": "1",
+  "tool": {
+    "name": "soroban-scan",
+    "version": "0.2.0",
+    "information_uri": "https://github.com/AyinkxLab/soroban-security-scanner"
+  },
+  "project": {
+    "root": ".",
+    "kind": "confirmed_soroban",
+    "source_files": 1,
+    "soroban_sdk_versions": []
+  },
+  "stats": {
+    "files_analyzed": 1,
+    "files_parsed": 1,
+    "files_failed": 0,
+    "files_skipped": 0,
+    "rules_run": 18,
+    "rules_skipped": 0,
+    "findings_raw": 4,
+    "findings_rejected": 0,
+    "suppressions_detected": 0,
+    "findings_suppressed": 0,
+    "findings_suppressed_by_config": 0,
+    "config_suppressions_detected": 0,
+    "config_suppressions_matched": 0,
+    "config_suppressions_applied": 0,
+    "generated_files_marked": 0,
+    "generated_files_excluded": 0
+  },
+  "effective_config": {
+    "min_severity": "info",
+    "min_confidence": "low",
+    "exclude": [],
+    "exclude_tests": false,
+    "exclude_generated": false,
+    "follow_symlinks": false,
+    "minimum_soroban_sdk": "21.0.0",
+    "suppressions": [],
+    "rules": {
+      "disabled": [],
+      "enabled": [],
+      "disabled_categories": [],
+      "enabled_categories": [],
+      "severity_overrides": {},
+      "confidence_overrides": {},
+      "time_budget_ms": null
+    },
+    "ai": {
+      "enabled": false,
+      "provider": null,
+      "model": null,
+      "temperature": 0.0,
+      "max_output_tokens": 1024,
+      "max_requests": 50,
+      "max_retries": 2,
+      "backoff_ms": 250,
+      "max_backoff_ms": 4000,
+      "failure_threshold": 3
+    }
+  },
+  "findings": [
+    {
+      "rule_id": "SS-001",
+      "title": "State-changing entry point without caller authorization",
+      "description": "A public contract function mutates storage but does not call require_auth or require_auth_for_args anywhere in its body or in the intra-file helper functions it calls. Without an authorization check, any account can invoke the function and change contract state, which may allow theft, privilege escalation, or corruption of contract data. This is a heuristic: authorization may legitimately be enforced by a callee or be intentionally absent for permissionless operations.",
+      "severity": "high",
+      "confidence": "medium",
+      "category": "authorization",
+      "location": {
+        "file": "SS-011/positive.rs",
+        "line": 13,
+        "column": 9
+      },
+      "evidence": "`set` storage mutation with no authorization in `initialize`: env . storage () . persistent () . set (& DataKey :: Admin , & admin)",
+      "remediation": "Call `address.require_auth()` (or `require_auth_for_args`) for the account that must approve the operation before mutating state. Prefer authorizing a specific argument that binds the approval to the operation rather than authorizing a stored admin address unconditionally. If the function is intentionally permissionless, document that and suppress this rule for the function.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/security/authorization"
+      ],
+      "fingerprint": "6e620bd49a33ed5dd9e693eb21d2ee7b"
+    },
+    {
+      "rule_id": "SS-006",
+      "title": "Persistent storage write without TTL management",
+      "description": "A contract entry point writes to persistent storage but does not call `extend_ttl`, `set_ttl`, or `bump` in the same function or in the intra-file helpers it calls. Persistent entries have a time-to-live; if it is not extended, stored data can expire and be lost. TTL may legitimately be managed elsewhere (for example in a separate maintenance entry point), so this is a low-confidence signal.",
+      "severity": "low",
+      "confidence": "low",
+      "category": "storage",
+      "location": {
+        "file": "SS-011/positive.rs",
+        "line": 13,
+        "column": 9
+      },
+      "evidence": "persistent storage write without TTL extension in `initialize`: env . storage () . persistent () . set (& DataKey :: Admin , & admin)",
+      "remediation": "When writing persistent data that must survive, extend its time-to-live with `storage().persistent().extend_ttl(...)` after the write. Prefer a single, well-documented TTL policy for the contract. If TTL is managed centrally, suppress this rule for the function.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/storage/persisting-data"
+      ],
+      "fingerprint": "039db96b21a90887b7223acbae663ab9"
+    },
+    {
+      "rule_id": "SS-010",
+      "title": "Privileged state change without an event",
+      "description": "A contract entry point mutates a storage key that looks like privileged configuration (for example admin, owner, pause, params, fees, or oracle) without publishing an event. Off-chain indexers and users rely on events to observe critical changes; without one, the change is invisible to monitoring and incident response.",
+      "severity": "low",
+      "confidence": "low",
+      "category": "events",
+      "location": {
+        "file": "SS-011/positive.rs",
+        "line": 13,
+        "column": 9
+      },
+      "evidence": "privileged storage change without an event in `initialize`: env . storage () . persistent () . set (& DataKey :: Admin , & admin)",
+      "remediation": "Publish an event with `env.events().publish(...)` for every privileged state change, including the old and new values where practical. Keep the event schema stable so indexers can rely on it.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/events"
+      ],
+      "fingerprint": "75019a8663138f87811480b25147c5ce"
+    },
+    {
+      "rule_id": "SS-011",
+      "title": "Initialization entry point without a re-initialization guard",
+      "description": "An initialization-style entry point (for example `initialize` or `init`) writes contract storage without first checking whether the contract has already been initialized. If the function stays callable after deployment, anyone can call it again to overwrite configuration or take over privileged state. This is a heuristic based on the function name and the absence of an authorization check or a storage existence read in the function or its same-file helpers.",
+      "severity": "high",
+      "confidence": "low",
+      "category": "access-control",
+      "location": {
+        "file": "SS-011/positive.rs",
+        "line": 13,
+        "column": 9
+      },
+      "evidence": "initializer `initialize` writes storage without a re-initialization guard: env . storage () . persistent () . set (& DataKey :: Admin , & admin)",
+      "remediation": "Guard initialization by checking that the contract is not already initialized before writing (for example `if env.storage().instance().has(&KEY) { return Err(Error::AlreadyInitialized) }`), or perform initialization in a constructor (`__constructor`) so it runs only at deploy time.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/security"
+      ],
+      "fingerprint": "53b3aca264cd5312ab7cb35db92a0f26"
+    }
+  ],
+  "suppressed": [],
+  "suppressions": [],
+  "config_suppressions": [],
+  "diagnostics": []
+}

@@ -1,0 +1,107 @@
+{
+  "schema_version": "1",
+  "tool": {
+    "name": "soroban-scan",
+    "version": "0.2.0",
+    "information_uri": "https://github.com/AyinkxLab/soroban-security-scanner"
+  },
+  "project": {
+    "root": ".",
+    "kind": "confirmed_soroban",
+    "source_files": 1,
+    "soroban_sdk_versions": []
+  },
+  "stats": {
+    "files_analyzed": 1,
+    "files_parsed": 1,
+    "files_failed": 0,
+    "files_skipped": 0,
+    "rules_run": 18,
+    "rules_skipped": 0,
+    "findings_raw": 2,
+    "findings_rejected": 0,
+    "suppressions_detected": 0,
+    "findings_suppressed": 0,
+    "findings_suppressed_by_config": 0,
+    "config_suppressions_detected": 0,
+    "config_suppressions_matched": 0,
+    "config_suppressions_applied": 0,
+    "generated_files_marked": 0,
+    "generated_files_excluded": 0
+  },
+  "effective_config": {
+    "min_severity": "info",
+    "min_confidence": "low",
+    "exclude": [],
+    "exclude_tests": false,
+    "exclude_generated": false,
+    "follow_symlinks": false,
+    "minimum_soroban_sdk": "21.0.0",
+    "suppressions": [],
+    "rules": {
+      "disabled": [],
+      "enabled": [],
+      "disabled_categories": [],
+      "enabled_categories": [],
+      "severity_overrides": {},
+      "confidence_overrides": {},
+      "time_budget_ms": null
+    },
+    "ai": {
+      "enabled": false,
+      "provider": null,
+      "model": null,
+      "temperature": 0.0,
+      "max_output_tokens": 1024,
+      "max_requests": 50,
+      "max_retries": 2,
+      "backoff_ms": 250,
+      "max_backoff_ms": 4000,
+      "failure_threshold": 3
+    }
+  },
+  "findings": [
+    {
+      "rule_id": "SS-006",
+      "title": "Persistent storage write without TTL management",
+      "description": "A contract entry point writes to persistent storage but does not call `extend_ttl`, `set_ttl`, or `bump` in the same function or in the intra-file helpers it calls. Persistent entries have a time-to-live; if it is not extended, stored data can expire and be lost. TTL may legitimately be managed elsewhere (for example in a separate maintenance entry point), so this is a low-confidence signal.",
+      "severity": "low",
+      "confidence": "low",
+      "category": "storage",
+      "location": {
+        "file": "SS-017/positive.rs",
+        "line": 12,
+        "column": 9
+      },
+      "evidence": "persistent storage write without TTL extension in `set`: env . storage () . persistent () . set (& DataKey :: Value , & value)",
+      "remediation": "When writing persistent data that must survive, extend its time-to-live with `storage().persistent().extend_ttl(...)` after the write. Prefer a single, well-documented TTL policy for the contract. If TTL is managed centrally, suppress this rule for the function.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/storage/persisting-data"
+      ],
+      "fingerprint": "509268ab4a288383acf40b26c7d4f0cb"
+    },
+    {
+      "rule_id": "SS-017",
+      "title": "Authorization after state mutation",
+      "description": "A contract entry point mutates storage before calling `require_auth`. The authorization check must run before the effect, otherwise a rejected call may already have changed state on some paths and the ordering indicates a logic bug.",
+      "severity": "medium",
+      "confidence": "medium",
+      "category": "authorization",
+      "location": {
+        "file": "SS-017/positive.rs",
+        "line": 12,
+        "column": 9
+      },
+      "evidence": "storage mutation before authorization in `set`: env . storage () . persistent () . set (& DataKey :: Value , & value)",
+      "remediation": "Authorize the caller at the start of the entry point, before any storage read or write that depends on the caller. Call `require_auth` or `require_auth_for_args` first, then perform the state change.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/security/authorization"
+      ],
+      "fingerprint": "fbf6d16b047d6733f4408c670b9ca2ee"
+    }
+  ],
+  "suppressed": [],
+  "suppressions": [],
+  "config_suppressions": [],
+  "diagnostics": []
+}

@@ -1,0 +1,126 @@
+{
+  "schema_version": "1",
+  "tool": {
+    "name": "soroban-scan",
+    "version": "0.2.0",
+    "information_uri": "https://github.com/AyinkxLab/soroban-security-scanner"
+  },
+  "project": {
+    "root": ".",
+    "kind": "confirmed_soroban",
+    "source_files": 1,
+    "soroban_sdk_versions": []
+  },
+  "stats": {
+    "files_analyzed": 1,
+    "files_parsed": 1,
+    "files_failed": 0,
+    "files_skipped": 0,
+    "rules_run": 18,
+    "rules_skipped": 0,
+    "findings_raw": 3,
+    "findings_rejected": 0,
+    "suppressions_detected": 0,
+    "findings_suppressed": 0,
+    "findings_suppressed_by_config": 0,
+    "config_suppressions_detected": 0,
+    "config_suppressions_matched": 0,
+    "config_suppressions_applied": 0,
+    "generated_files_marked": 0,
+    "generated_files_excluded": 0
+  },
+  "effective_config": {
+    "min_severity": "info",
+    "min_confidence": "low",
+    "exclude": [],
+    "exclude_tests": false,
+    "exclude_generated": false,
+    "follow_symlinks": false,
+    "minimum_soroban_sdk": "21.0.0",
+    "suppressions": [],
+    "rules": {
+      "disabled": [],
+      "enabled": [],
+      "disabled_categories": [],
+      "enabled_categories": [],
+      "severity_overrides": {},
+      "confidence_overrides": {},
+      "time_budget_ms": null
+    },
+    "ai": {
+      "enabled": false,
+      "provider": null,
+      "model": null,
+      "temperature": 0.0,
+      "max_output_tokens": 1024,
+      "max_requests": 50,
+      "max_retries": 2,
+      "backoff_ms": 250,
+      "max_backoff_ms": 4000,
+      "failure_threshold": 3
+    }
+  },
+  "findings": [
+    {
+      "rule_id": "SS-012",
+      "title": "Unbounded collection growth in an entry point",
+      "description": "A contract entry point grows a collection that was read from storage without checking a length or capacity limit. Repeated calls can grow the ledger entry without bound, increasing rent and eventually making reads or iteration fail, a denial of service.",
+      "severity": "medium",
+      "confidence": "low",
+      "category": "resource-usage",
+      "location": {
+        "file": "SS-012/positive.rs",
+        "line": 17,
+        "column": 9
+      },
+      "evidence": "unbounded collection growth in `add`: items . push_back (item)",
+      "remediation": "Cap the collection size before growing it: read the current length and reject the operation at a documented maximum, or store a bounded aggregate instead. Return a typed contract error when the cap is reached.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/security/resource-limits"
+      ],
+      "fingerprint": "36f7919f3413aa60d79ff229e8b33961"
+    },
+    {
+      "rule_id": "SS-001",
+      "title": "State-changing entry point without caller authorization",
+      "description": "A public contract function mutates storage but does not call require_auth or require_auth_for_args anywhere in its body or in the intra-file helper functions it calls. Without an authorization check, any account can invoke the function and change contract state, which may allow theft, privilege escalation, or corruption of contract data. This is a heuristic: authorization may legitimately be enforced by a callee or be intentionally absent for permissionless operations.",
+      "severity": "high",
+      "confidence": "medium",
+      "category": "authorization",
+      "location": {
+        "file": "SS-012/positive.rs",
+        "line": 18,
+        "column": 9
+      },
+      "evidence": "`set` storage mutation with no authorization in `add`: env . storage () . persistent () . set (& DataKey :: Items , & items)",
+      "remediation": "Call `address.require_auth()` (or `require_auth_for_args`) for the account that must approve the operation before mutating state. Prefer authorizing a specific argument that binds the approval to the operation rather than authorizing a stored admin address unconditionally. If the function is intentionally permissionless, document that and suppress this rule for the function.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/security/authorization"
+      ],
+      "fingerprint": "a39c12d558fc7b44310207ba8108ecab"
+    },
+    {
+      "rule_id": "SS-006",
+      "title": "Persistent storage write without TTL management",
+      "description": "A contract entry point writes to persistent storage but does not call `extend_ttl`, `set_ttl`, or `bump` in the same function or in the intra-file helpers it calls. Persistent entries have a time-to-live; if it is not extended, stored data can expire and be lost. TTL may legitimately be managed elsewhere (for example in a separate maintenance entry point), so this is a low-confidence signal.",
+      "severity": "low",
+      "confidence": "low",
+      "category": "storage",
+      "location": {
+        "file": "SS-012/positive.rs",
+        "line": 18,
+        "column": 9
+      },
+      "evidence": "persistent storage write without TTL extension in `add`: env . storage () . persistent () . set (& DataKey :: Items , & items)",
+      "remediation": "When writing persistent data that must survive, extend its time-to-live with `storage().persistent().extend_ttl(...)` after the write. Prefer a single, well-documented TTL policy for the contract. If TTL is managed centrally, suppress this rule for the function.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/storage/persisting-data"
+      ],
+      "fingerprint": "1b817a9cf8e8c6fcce93cb968585a84d"
+    }
+  ],
+  "suppressed": [],
+  "suppressions": [],
+  "config_suppressions": [],
+  "diagnostics": []
+}

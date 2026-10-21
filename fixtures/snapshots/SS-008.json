@@ -1,0 +1,89 @@
+{
+  "schema_version": "1",
+  "tool": {
+    "name": "soroban-scan",
+    "version": "0.2.0",
+    "information_uri": "https://github.com/AyinkxLab/soroban-security-scanner"
+  },
+  "project": {
+    "root": ".",
+    "kind": "confirmed_soroban",
+    "source_files": 1,
+    "soroban_sdk_versions": []
+  },
+  "stats": {
+    "files_analyzed": 1,
+    "files_parsed": 1,
+    "files_failed": 0,
+    "files_skipped": 0,
+    "rules_run": 18,
+    "rules_skipped": 0,
+    "findings_raw": 1,
+    "findings_rejected": 0,
+    "suppressions_detected": 0,
+    "findings_suppressed": 0,
+    "findings_suppressed_by_config": 0,
+    "config_suppressions_detected": 0,
+    "config_suppressions_matched": 0,
+    "config_suppressions_applied": 0,
+    "generated_files_marked": 0,
+    "generated_files_excluded": 0
+  },
+  "effective_config": {
+    "min_severity": "info",
+    "min_confidence": "low",
+    "exclude": [],
+    "exclude_tests": false,
+    "exclude_generated": false,
+    "follow_symlinks": false,
+    "minimum_soroban_sdk": "21.0.0",
+    "suppressions": [],
+    "rules": {
+      "disabled": [],
+      "enabled": [],
+      "disabled_categories": [],
+      "enabled_categories": [],
+      "severity_overrides": {},
+      "confidence_overrides": {},
+      "time_budget_ms": null
+    },
+    "ai": {
+      "enabled": false,
+      "provider": null,
+      "model": null,
+      "temperature": 0.0,
+      "max_output_tokens": 1024,
+      "max_requests": 50,
+      "max_retries": 2,
+      "backoff_ms": 250,
+      "max_backoff_ms": 4000,
+      "failure_threshold": 3
+    }
+  },
+  "findings": [
+    {
+      "rule_id": "SS-008",
+      "title": "Unchecked arithmetic in a contract entry point",
+      "description": "A public contract entry point performs binary arithmetic (`+`, `-`, or `*`) on values without a checked, saturating, overflowing, or wrapping operation. In release builds Rust arithmetic wraps on overflow and underflow instead of panicking, so a decrement below zero (or an overflow) can silently produce an incorrect result — a common cause of balance and accounting bugs in token, escrow and vault contracts. This is a heuristic: it cannot prove that the operands are attacker-influenced or that their range is constrained, so it reports low confidence and should be reviewed in context.",
+      "severity": "medium",
+      "confidence": "low",
+      "category": "arithmetic",
+      "location": {
+        "file": "SS-008/positive.rs",
+        "line": 21,
+        "column": 9
+      },
+      "evidence": "unchecked `-` arithmetic in entry point `withdraw`: balance - amount (use `checked_sub` and handle `None`)",
+      "remediation": "Use explicit checked arithmetic (`checked_add`, `checked_sub`, `checked_mul`) and handle the `None` case with a typed contract error, or use saturating/overflowing variants when that semantics is intended. Prefer checked operations for balances, amounts, and counters derived from user input.",
+      "references": [
+        "https://doc.rust-lang.org/reference/expressions/operator-expr.html#overflow",
+        "https://developers.stellar.org/docs"
+      ],
+      "fingerprint": "48607b3e663c4369781f250384a35ee8"
+    }
+  ],
+  "suppressed": [],
+  "suppressions": [],
+  "config_suppressions": [],
+  "diagnostics": []
+}

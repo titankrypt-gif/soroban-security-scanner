@@ -1,0 +1,88 @@
+{
+  "schema_version": "1",
+  "tool": {
+    "name": "soroban-scan",
+    "version": "0.2.0",
+    "information_uri": "https://github.com/AyinkxLab/soroban-security-scanner"
+  },
+  "project": {
+    "root": ".",
+    "kind": "confirmed_soroban",
+    "source_files": 1,
+    "soroban_sdk_versions": []
+  },
+  "stats": {
+    "files_analyzed": 1,
+    "files_parsed": 1,
+    "files_failed": 0,
+    "files_skipped": 0,
+    "rules_run": 18,
+    "rules_skipped": 0,
+    "findings_raw": 1,
+    "findings_rejected": 0,
+    "suppressions_detected": 0,
+    "findings_suppressed": 0,
+    "findings_suppressed_by_config": 0,
+    "config_suppressions_detected": 0,
+    "config_suppressions_matched": 0,
+    "config_suppressions_applied": 0,
+    "generated_files_marked": 0,
+    "generated_files_excluded": 0
+  },
+  "effective_config": {
+    "min_severity": "info",
+    "min_confidence": "low",
+    "exclude": [],
+    "exclude_tests": false,
+    "exclude_generated": false,
+    "follow_symlinks": false,
+    "minimum_soroban_sdk": "21.0.0",
+    "suppressions": [],
+    "rules": {
+      "disabled": [],
+      "enabled": [],
+      "disabled_categories": [],
+      "enabled_categories": [],
+      "severity_overrides": {},
+      "confidence_overrides": {},
+      "time_budget_ms": null
+    },
+    "ai": {
+      "enabled": false,
+      "provider": null,
+      "model": null,
+      "temperature": 0.0,
+      "max_output_tokens": 1024,
+      "max_requests": 50,
+      "max_retries": 2,
+      "backoff_ms": 250,
+      "max_backoff_ms": 4000,
+      "failure_threshold": 3
+    }
+  },
+  "findings": [
+    {
+      "rule_id": "SS-029",
+      "title": "Public test or debug hook in a contract entry point",
+      "description": "A public contract entry point is named like a test or debug backdoor (a `test`, `debug`, `dev`, `mock`, or `dummy` name segment). Backdoor entry points that remain callable in a production deployment let anyone invoke privileged behavior, and are a well-known way on-chain contracts are compromised. This is a name-based heuristic and may flag a legitimately named function.",
+      "severity": "medium",
+      "confidence": "medium",
+      "category": "access-control",
+      "location": {
+        "file": "SS-029/positive.rs",
+        "line": 14,
+        "column": 9
+      },
+      "evidence": "public entry point `debug_set_admin` looks like a test/debug hook",
+      "remediation": "Remove test/debug entry points before deployment, or gate them behind `#[cfg(test)]` or a compile-time feature so they cannot be called from a production build. Never ship a privileged function intended only for testing.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/security"
+      ],
+      "fingerprint": "c2c7192fdfffc7b7c5fc6951261f5cb4"
+    }
+  ],
+  "suppressed": [],
+  "suppressions": [],
+  "config_suppressions": [],
+  "diagnostics": []
+}

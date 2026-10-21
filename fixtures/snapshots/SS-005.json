@@ -1,0 +1,89 @@
+{
+  "schema_version": "1",
+  "tool": {
+    "name": "soroban-scan",
+    "version": "0.2.0",
+    "information_uri": "https://github.com/AyinkxLab/soroban-security-scanner"
+  },
+  "project": {
+    "root": ".",
+    "kind": "confirmed_soroban",
+    "source_files": 1,
+    "soroban_sdk_versions": []
+  },
+  "stats": {
+    "files_analyzed": 1,
+    "files_parsed": 1,
+    "files_failed": 0,
+    "files_skipped": 0,
+    "rules_run": 18,
+    "rules_skipped": 0,
+    "findings_raw": 1,
+    "findings_rejected": 0,
+    "suppressions_detected": 0,
+    "findings_suppressed": 0,
+    "findings_suppressed_by_config": 0,
+    "config_suppressions_detected": 0,
+    "config_suppressions_matched": 0,
+    "config_suppressions_applied": 0,
+    "generated_files_marked": 0,
+    "generated_files_excluded": 0
+  },
+  "effective_config": {
+    "min_severity": "info",
+    "min_confidence": "low",
+    "exclude": [],
+    "exclude_tests": false,
+    "exclude_generated": false,
+    "follow_symlinks": false,
+    "minimum_soroban_sdk": "21.0.0",
+    "suppressions": [],
+    "rules": {
+      "disabled": [],
+      "enabled": [],
+      "disabled_categories": [],
+      "enabled_categories": [],
+      "severity_overrides": {},
+      "confidence_overrides": {},
+      "time_budget_ms": null
+    },
+    "ai": {
+      "enabled": false,
+      "provider": null,
+      "model": null,
+      "temperature": 0.0,
+      "max_output_tokens": 1024,
+      "max_requests": 50,
+      "max_retries": 2,
+      "backoff_ms": 250,
+      "max_backoff_ms": 4000,
+      "failure_threshold": 3
+    }
+  },
+  "findings": [
+    {
+      "rule_id": "SS-005",
+      "title": "Unsafe code in a Soroban contract",
+      "description": "The contract source contains an `unsafe` block or expression. Soroban contracts execute in a sandbox and rarely require `unsafe`; when it is present it bypasses the guarantees Rust normally provides and can undermine memory safety assumptions or introduce undefined behavior. This finding is evidence of `unsafe` usage, not proof of a bug.",
+      "severity": "medium",
+      "confidence": "high",
+      "category": "unsafe",
+      "location": {
+        "file": "SS-005/positive.rs",
+        "line": 10,
+        "column": 9
+      },
+      "evidence": "unsafe block/expression in SS-005/positive.rs",
+      "remediation": "Remove the `unsafe` block if possible. If it is genuinely required, isolate it in a small, well-documented function, prove its invariants, and cover it with targeted tests. Document why safe alternatives are insufficient.",
+      "references": [
+        "https://doc.rust-lang.org/nomicon/",
+        "https://developers.stellar.org/docs/learn/encyclopedia/security"
+      ],
+      "fingerprint": "f5ef1aef9d2a4cd6d224d0e6e9ecc665"
+    }
+  ],
+  "suppressed": [],
+  "suppressions": [],
+  "config_suppressions": [],
+  "diagnostics": []
+}

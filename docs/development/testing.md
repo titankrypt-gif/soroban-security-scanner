@@ -91,3 +91,28 @@ cargo fuzz run parse_source -- -runs=2000
 
 Minimize any regression with `cargo fuzz tmin parse_source <input>` and add it
 under `fixtures/` as a permanent regression case.
+=======
+## Golden report snapshots
+
+`fixtures/snapshots/<RULE-ID>.json` and `.sarif` pin the machine-readable
+output for every corpus positive fixture. The test renders each fixture through
+`report::render_json` and `report::render_sarif`, then compares the bytes to the
+committed snapshot. A change to a report field, ordering rule, or rule metadata
+must therefore be visible in review.
+
+Regenerate the snapshots deliberately after reviewing the diff:
+
+```bash
+UPDATE_SNAPSHOTS=1 cargo test -p soroban-scan-core --test snapshots
+```
+
+On PowerShell:
+
+```powershell
+$env:UPDATE_SNAPSHOTS = "1"
+cargo test -p soroban-scan-core --test snapshots
+Remove-Item Env:UPDATE_SNAPSHOTS
+```
+
+The snapshot test does not fetch anything, execute scanned code, or depend on
+the local machine: the synthetic project root is `.` and file names are stable.

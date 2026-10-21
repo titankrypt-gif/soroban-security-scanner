@@ -1,0 +1,89 @@
+{
+  "schema_version": "1",
+  "tool": {
+    "name": "soroban-scan",
+    "version": "0.2.0",
+    "information_uri": "https://github.com/AyinkxLab/soroban-security-scanner"
+  },
+  "project": {
+    "root": ".",
+    "kind": "confirmed_soroban",
+    "source_files": 1,
+    "soroban_sdk_versions": []
+  },
+  "stats": {
+    "files_analyzed": 1,
+    "files_parsed": 1,
+    "files_failed": 0,
+    "files_skipped": 0,
+    "rules_run": 18,
+    "rules_skipped": 0,
+    "findings_raw": 1,
+    "findings_rejected": 0,
+    "suppressions_detected": 0,
+    "findings_suppressed": 0,
+    "findings_suppressed_by_config": 0,
+    "config_suppressions_detected": 0,
+    "config_suppressions_matched": 0,
+    "config_suppressions_applied": 0,
+    "generated_files_marked": 0,
+    "generated_files_excluded": 0
+  },
+  "effective_config": {
+    "min_severity": "info",
+    "min_confidence": "low",
+    "exclude": [],
+    "exclude_tests": false,
+    "exclude_generated": false,
+    "follow_symlinks": false,
+    "minimum_soroban_sdk": "21.0.0",
+    "suppressions": [],
+    "rules": {
+      "disabled": [],
+      "enabled": [],
+      "disabled_categories": [],
+      "enabled_categories": [],
+      "severity_overrides": {},
+      "confidence_overrides": {},
+      "time_budget_ms": null
+    },
+    "ai": {
+      "enabled": false,
+      "provider": null,
+      "model": null,
+      "temperature": 0.0,
+      "max_output_tokens": 1024,
+      "max_requests": 50,
+      "max_retries": 2,
+      "backoff_ms": 250,
+      "max_backoff_ms": 4000,
+      "failure_threshold": 3
+    }
+  },
+  "findings": [
+    {
+      "rule_id": "SS-009",
+      "title": "Insecure randomness derived from ledger state",
+      "description": "A public contract entry point uses the ledger timestamp or ledger sequence in arithmetic, modulo, or a comparison that appears to select an outcome. Ledger values are publicly known and can be influenced by transaction submission timing, so deriving randomness from them is predictable and may let an attacker steer lotteries, winner selection, or other value-dependent logic. This is a heuristic: it reports low confidence and cannot prove that the value is used as randomness or that an attacker can control the result.",
+      "severity": "medium",
+      "confidence": "low",
+      "category": "arithmetic",
+      "location": {
+        "file": "SS-009/positive.rs",
+        "line": 5,
+        "column": 10
+      },
+      "evidence": "ledger `timestamp` may be predictable and is used in an outcome-selecting modulo in entry point `draw`: env . ledger () . timestamp () % 100",
+      "remediation": "Do not derive randomness from `ledger().timestamp()` or `ledger().sequence()`. Use a commitment/reveal scheme, a verifiable randomness source, or another design that does not depend on ledger values the submitter can observe or influence. If the value is only used for an expiry check against a stored deadline, document the use and suppress this rule.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/security",
+        "https://developers.stellar.org/docs"
+      ],
+      "fingerprint": "d3dfa215853ee83b3d288774a980392e"
+    }
+  ],
+  "suppressed": [],
+  "suppressions": [],
+  "config_suppressions": [],
+  "diagnostics": []
+}

@@ -1,0 +1,183 @@
+{
+  "schema_version": "1",
+  "tool": {
+    "name": "soroban-scan",
+    "version": "0.2.0",
+    "information_uri": "https://github.com/AyinkxLab/soroban-security-scanner"
+  },
+  "project": {
+    "root": ".",
+    "kind": "confirmed_soroban",
+    "source_files": 1,
+    "soroban_sdk_versions": []
+  },
+  "stats": {
+    "files_analyzed": 1,
+    "files_parsed": 1,
+    "files_failed": 0,
+    "files_skipped": 0,
+    "rules_run": 18,
+    "rules_skipped": 0,
+    "findings_raw": 6,
+    "findings_rejected": 0,
+    "suppressions_detected": 0,
+    "findings_suppressed": 0,
+    "findings_suppressed_by_config": 0,
+    "config_suppressions_detected": 0,
+    "config_suppressions_matched": 0,
+    "config_suppressions_applied": 0,
+    "generated_files_marked": 0,
+    "generated_files_excluded": 0
+  },
+  "effective_config": {
+    "min_severity": "info",
+    "min_confidence": "low",
+    "exclude": [],
+    "exclude_tests": false,
+    "exclude_generated": false,
+    "follow_symlinks": false,
+    "minimum_soroban_sdk": "21.0.0",
+    "suppressions": [],
+    "rules": {
+      "disabled": [],
+      "enabled": [],
+      "disabled_categories": [],
+      "enabled_categories": [],
+      "severity_overrides": {},
+      "confidence_overrides": {},
+      "time_budget_ms": null
+    },
+    "ai": {
+      "enabled": false,
+      "provider": null,
+      "model": null,
+      "temperature": 0.0,
+      "max_output_tokens": 1024,
+      "max_requests": 50,
+      "max_retries": 2,
+      "backoff_ms": 250,
+      "max_backoff_ms": 4000,
+      "failure_threshold": 3
+    }
+  },
+  "findings": [
+    {
+      "rule_id": "SS-001",
+      "title": "State-changing entry point without caller authorization",
+      "description": "A public contract function mutates storage but does not call require_auth or require_auth_for_args anywhere in its body or in the intra-file helper functions it calls. Without an authorization check, any account can invoke the function and change contract state, which may allow theft, privilege escalation, or corruption of contract data. This is a heuristic: authorization may legitimately be enforced by a callee or be intentionally absent for permissionless operations.",
+      "severity": "high",
+      "confidence": "medium",
+      "category": "authorization",
+      "location": {
+        "file": "SS-016/positive.rs",
+        "line": 12,
+        "column": 9
+      },
+      "evidence": "`set` storage mutation with no authorization in `configure`: env . storage () . instance () . set (& DataKey :: A , & a)",
+      "remediation": "Call `address.require_auth()` (or `require_auth_for_args`) for the account that must approve the operation before mutating state. Prefer authorizing a specific argument that binds the approval to the operation rather than authorizing a stored admin address unconditionally. If the function is intentionally permissionless, document that and suppress this rule for the function.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/security/authorization"
+      ],
+      "fingerprint": "64511a6c4862f557012e7a274614dbdf"
+    },
+    {
+      "rule_id": "SS-011",
+      "title": "Initialization entry point without a re-initialization guard",
+      "description": "An initialization-style entry point (for example `initialize` or `init`) writes contract storage without first checking whether the contract has already been initialized. If the function stays callable after deployment, anyone can call it again to overwrite configuration or take over privileged state. This is a heuristic based on the function name and the absence of an authorization check or a storage existence read in the function or its same-file helpers.",
+      "severity": "high",
+      "confidence": "low",
+      "category": "access-control",
+      "location": {
+        "file": "SS-016/positive.rs",
+        "line": 12,
+        "column": 9
+      },
+      "evidence": "initializer `configure` writes storage without a re-initialization guard: env . storage () . instance () . set (& DataKey :: A , & a)",
+      "remediation": "Guard initialization by checking that the contract is not already initialized before writing (for example `if env.storage().instance().has(&KEY) { return Err(Error::AlreadyInitialized) }`), or perform initialization in a constructor (`__constructor`) so it runs only at deploy time.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/security"
+      ],
+      "fingerprint": "5555426d372f99e3d602cf38d65acf4c"
+    },
+    {
+      "rule_id": "SS-016",
+      "title": "Unbounded data stored in instance storage",
+      "description": "Instance storage is loaded for every invocation and has strict size limits. Writing repeated distinct keys, or growing a collection, in instance storage increases the cost of every call and can break the contract at scale. Constant configuration is a better fit for instance storage.",
+      "severity": "medium",
+      "confidence": "low",
+      "category": "storage",
+      "location": {
+        "file": "SS-016/positive.rs",
+        "line": 12,
+        "column": 9
+      },
+      "evidence": "repeated instance-storage keys in `configure`: env . storage () . instance () . set (& DataKey :: A , & a)",
+      "remediation": "Keep instance storage for small, fixed configuration. Store growing collections in persistent storage, and bound their size explicitly.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/storage/persisting-data"
+      ],
+      "fingerprint": "0cb1efb1a006f0e476a1be0487adfab4"
+    },
+    {
+      "rule_id": "SS-001",
+      "title": "State-changing entry point without caller authorization",
+      "description": "A public contract function mutates storage but does not call require_auth or require_auth_for_args anywhere in its body or in the intra-file helper functions it calls. Without an authorization check, any account can invoke the function and change contract state, which may allow theft, privilege escalation, or corruption of contract data. This is a heuristic: authorization may legitimately be enforced by a callee or be intentionally absent for permissionless operations.",
+      "severity": "high",
+      "confidence": "medium",
+      "category": "authorization",
+      "location": {
+        "file": "SS-016/positive.rs",
+        "line": 13,
+        "column": 9
+      },
+      "evidence": "`set` storage mutation with no authorization in `configure`: env . storage () . instance () . set (& DataKey :: B , & b)",
+      "remediation": "Call `address.require_auth()` (or `require_auth_for_args`) for the account that must approve the operation before mutating state. Prefer authorizing a specific argument that binds the approval to the operation rather than authorizing a stored admin address unconditionally. If the function is intentionally permissionless, document that and suppress this rule for the function.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/security/authorization"
+      ],
+      "fingerprint": "40b18bea271c88c2b221edb11b7ea58b"
+    },
+    {
+      "rule_id": "SS-011",
+      "title": "Initialization entry point without a re-initialization guard",
+      "description": "An initialization-style entry point (for example `initialize` or `init`) writes contract storage without first checking whether the contract has already been initialized. If the function stays callable after deployment, anyone can call it again to overwrite configuration or take over privileged state. This is a heuristic based on the function name and the absence of an authorization check or a storage existence read in the function or its same-file helpers.",
+      "severity": "high",
+      "confidence": "low",
+      "category": "access-control",
+      "location": {
+        "file": "SS-016/positive.rs",
+        "line": 13,
+        "column": 9
+      },
+      "evidence": "initializer `configure` writes storage without a re-initialization guard: env . storage () . instance () . set (& DataKey :: B , & b)",
+      "remediation": "Guard initialization by checking that the contract is not already initialized before writing (for example `if env.storage().instance().has(&KEY) { return Err(Error::AlreadyInitialized) }`), or perform initialization in a constructor (`__constructor`) so it runs only at deploy time.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/security"
+      ],
+      "fingerprint": "04637f34a8290f5734c2f0436359c2bc"
+    },
+    {
+      "rule_id": "SS-016",
+      "title": "Unbounded data stored in instance storage",
+      "description": "Instance storage is loaded for every invocation and has strict size limits. Writing repeated distinct keys, or growing a collection, in instance storage increases the cost of every call and can break the contract at scale. Constant configuration is a better fit for instance storage.",
+      "severity": "medium",
+      "confidence": "low",
+      "category": "storage",
+      "location": {
+        "file": "SS-016/positive.rs",
+        "line": 13,
+        "column": 9
+      },
+      "evidence": "repeated instance-storage keys in `configure`: env . storage () . instance () . set (& DataKey :: B , & b)",
+      "remediation": "Keep instance storage for small, fixed configuration. Store growing collections in persistent storage, and bound their size explicitly.",
+      "references": [
+        "https://developers.stellar.org/docs/learn/encyclopedia/storage/persisting-data"
+      ],
+      "fingerprint": "28e8764093d6d631285f4c302b420684"
+    }
+  ],
+  "suppressed": [],
+  "suppressions": [],
+  "config_suppressions": [],
+  "diagnostics": []
+}
