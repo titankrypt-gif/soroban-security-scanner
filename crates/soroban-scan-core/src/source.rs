@@ -647,7 +647,7 @@ fn walk_items(
                 let trait_path = imp
                     .trait_
                     .as_ref()
-                    .map(|(_, path, _)| path.to_token_stream().to_string());
+                    .map(|(path, _)| path.to_token_stream().to_string());
                 let mut summary = item_summary(
                     ItemKind::Impl,
                     name.clone(),
