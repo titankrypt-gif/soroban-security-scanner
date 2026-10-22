@@ -27,7 +27,13 @@
     "config_suppressions_matched": 0,
     "config_suppressions_applied": 0,
     "generated_files_marked": 0,
-    "generated_files_excluded": 0
+    "generated_files_excluded": 0,
+    "findings_by_category": {
+      "authorization": 1,
+      "cross-contract": 2,
+      "storage": 1,
+      "token": 1
+    }
   },
   "effective_config": {
     "min_severity": "info",

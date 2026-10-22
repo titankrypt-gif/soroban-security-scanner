@@ -27,7 +27,12 @@
     "config_suppressions_matched": 0,
     "config_suppressions_applied": 0,
     "generated_files_marked": 0,
-    "generated_files_excluded": 0
+    "generated_files_excluded": 0,
+    "findings_by_category": {
+      "authorization": 1,
+      "events": 1,
+      "storage": 1
+    }
   },
   "effective_config": {
     "min_severity": "info",
